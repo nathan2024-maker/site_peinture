@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -59,6 +61,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $instagram;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Peinture::class, mappedBy="user", orphanRemoval=true)
+     */
+    private $peintures;
+
+    public function __construct()
+    {
+        $this->peintures = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -205,6 +217,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setInstagram(?string $instagram): self
     {
         $this->instagram = $instagram;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Peinture>
+     */
+    public function getPeintures(): Collection
+    {
+        return $this->peintures;
+    }
+
+    public function addPeinture(Peinture $peinture): self
+    {
+        if (!$this->peintures->contains($peinture)) {
+            $this->peintures[] = $peinture;
+            $peinture->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removePeinture(Peinture $peinture): self
+    {
+        if ($this->peintures->removeElement($peinture)) {
+            // set the owning side to null (unless already changed)
+            if ($peinture->getUser() === $this) {
+                $peinture->setUser(null);
+            }
+        }
 
         return $this;
     }
